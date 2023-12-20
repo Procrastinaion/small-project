@@ -105,14 +105,17 @@ class Player(object):
         self._cards_on_hand.append(card)  # 这里的card其实是接收发牌函数的返回值
 
     def __str__(self):
-        return f"{self._name}玩家，您的手牌为：{self._cards_on_hand}，剩余筹码为：{self._chips}"
+        return f"{self._name}玩家，您的手牌为：{self._cards_on_hand}， \
+            剩余筹码为：{self._chips}"
 
 
 def card_point_calculate(cards):
     """
-    计算分数并返回  temp_points = 22 代表出现BJ， temp_points = 0 为爆牌  其余情况为手牌分数
-    :param: 输入玩家手牌
-    :rtype: int
+    计算分数并返回  temp_points = 22 代表出现BJ， temp_points = 0 为爆牌  
+    其余情况为手牌分数
+
+    :param cards: 输入玩家手牌
+    :rtype : int
     """
     temp_points = 0
     flag = 0  # flag表征手牌里有无‘A’
@@ -128,11 +131,13 @@ def card_point_calculate(cards):
             point = card.face
             temp_points += point
 
-    if flag and temp_points >= 21:
-        if len(cards) == 2:
+    if flag:
+        temp_points += 10
+        if temp_points == 21 and len(cards) == 2:
             temp_points = 22  # 22代表Black Jack
             return temp_points
-        else:
+        
+        if temp_points > 21:
             temp_points -= 10  # 如果点数> 21，则将A算作1点，即总点数 - 10
 
     if temp_points > 21:
@@ -141,7 +146,8 @@ def card_point_calculate(cards):
         return temp_points
 
 
-def chips_calculate(banker, players: list, winner_condition: list, players_chips: list):
+def chips_calculate(
+            banker, players: list, winner_condition: list, players_chips: list):
     """
     赌注计算函数
 
@@ -192,8 +198,8 @@ def player_round(player, poker):
     :return: 0 为爆牌  2 为不爆牌且停牌   3 为加倍赌注成功
     """
     player.points = card_point_calculate(player.cards_on_hand)
-    print(f"{player.name}玩家，您手牌分数为：{player.points}")
     if player.points < 21:
+        print(f"{player.name}玩家，您手牌分数为：{player.points}")
         player_choice = int(input(f"请您选择: 1.继续要牌 2.停牌 3.加倍赌注"))
         if player_choice == 1:
             player.get(poker.next)
@@ -239,7 +245,7 @@ def banker_round(banker, poker):
     """
     banker.points = card_point_calculate(banker.cards_on_hand)
     if banker.points < 17:
-        while banker.points < 17:
+        while banker.points < 17 and banker.points != 0:
             print(f"{banker.name}庄家，您手牌分数为：{banker.points}，需继续要牌")
             banker.get(poker.next)
             banker.points = card_point_calculate(banker.cards_on_hand)
@@ -286,7 +292,7 @@ def main():
             player.points = 0  # 清空每个人的手牌分数
             player.cards_clear()    # 清空手牌
         for i in range(0, player_number):
-            player_chips[i] = 0
+            player_chips[i] = 0.0
 
         print('\n')
 
@@ -306,7 +312,8 @@ def main():
         print("\n")
         print(f"{banker.name}庄家的第一张手牌为{banker.cards_on_hand[0]}", end='    ')
         for player in players:
-            print(f"{player.name}玩家的手牌为{player.cards_on_hand[0]}{player.cards_on_hand[1]}", end='    ')
+            print(f"{player.name}玩家的手牌为\
+{player.cards_on_hand[0]}{player.cards_on_hand[1]}", end='    ')
         print("\n")
 
         print(f"-------------------------闲家回合-------------------------")
@@ -323,13 +330,13 @@ def main():
         print(f"-------------------------结算回合-------------------------")
         print(f"{banker.name}庄家手牌为：", end='')
         for card in banker.cards_on_hand:               # 展示庄家手牌
-            print(f"{card.suite}{card.face}", end='  ')
+            print(f"{card}", end='  ')
         print('\n')
 
         for player in players:                      # 展示闲家手牌
             print(f"{player.name}玩家手牌为：", end='')
             for card in player.cards_on_hand:
-                print(f"{card.suite}{card.face}", end='  ')
+                print(f"{card}", end='  ')
             print('\n')
 
         winner_condition = winner_calculate(banker, players)
@@ -346,8 +353,9 @@ def main():
             print(f"{player.name}玩家剩余筹码：{player.chips}", end='   ')
         print('\n')
 
-
         game_flag = int(input("请输入是否继续游戏：0.停止 1.继续 "))
+        if not game_flag:
+            print('感谢您游玩本游戏！')
 
 
 if __name__ == '__main__':
